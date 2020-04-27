@@ -14,6 +14,8 @@
 
 #include "Message.h"
 
+#include "msg/Messenger.h"
+
 #include "messages/MPGStats.h"
 
 #include "messages/MGenericMessage.h"
@@ -973,12 +975,12 @@ void Message::decode_trace(ceph::bufferlist::const_iterator &p, bool create)
   const auto msgr = connection->get_messenger();
   const auto endpoint = msgr->get_trace_endpoint();
   if (info.trace_id) {
-    trace.init(get_type_name(), endpoint, &info, true);
+    trace.init(std::string(get_type_name()).c_str(), endpoint, &info, true);
     trace.event("decoded trace");
   } else if (create || (msgr->get_myname().is_osd() &&
                         msgr->cct->_conf->osd_blkin_trace_all)) {
     // create a trace even if we didn't get one on the wire
-    trace.init(get_type_name(), endpoint);
+    trace.init(std::string(get_type_name()).c_str(), endpoint);
     trace.event("created trace");
   }
   trace.keyval("tid", get_tid());

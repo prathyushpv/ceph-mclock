@@ -368,6 +368,9 @@ struct ceph_osd_request_head {
       encode(osdmap_epoch, payload);
       encode(flags, payload);
       encode(reqid, payload);
+      //ZTracer::Endpoint ep("0.0.0.0", 0, "client");
+      //blkin_trace_info info = { reqid.tid, reqid.tid, 0 };
+      ///trace.init("MOSDOp", &ep, &info);
       encode_trace(payload, features);
 
       // -- above decoded up front; below decoded post-dispatch thread --

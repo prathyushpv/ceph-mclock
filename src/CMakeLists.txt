@@ -198,7 +198,7 @@ set(GCOV_PREFIX_STRIP 4)
 
 # the src/.git_version file may be written out by make-dist; otherwise
 # we pull the git version from .git
-option(ENABLE_GIT_VERSION "build Ceph with git version string" ON)
+option(ENABLE_GIT_VERSION "build Ceph with git version string" OFF)
 if(${ENABLE_GIT_VERSION})
   get_git_head_revision(GIT_REFSPEC CEPH_GIT_VER)
   git_describe(CEPH_GIT_NICE_VER_WITH_V --always)

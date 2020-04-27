@@ -7050,8 +7050,13 @@ void OSD::ms_fast_dispatch(Message *m)
         reqid.name._num, reqid.tid, reqid.inc);
   }
 
-  if (m->trace)
+//  cout << m->trace
+  //if (m->trace)
     op->osd_trace.init("osd op", &trace_endpoint, &m->trace);
+//    else
+// {
+//   cout << "NO M->TRACE\n";
+//  }
 
   // note sender epoch, min req's epoch
   op->sent_epoch = static_cast<MOSDFastDispatchOp*>(m)->get_map_epoch();
@@ -9587,6 +9592,7 @@ void OSD::enqueue_op(spg_t pg, OpRequestRef&& op, epoch_t epoch)
 	   << " latency " << latency
 	   << " epoch " << epoch
 	   << " " << *(op->get_req()) << dendl;
+  //std::cout << "Tracing the event enqueue op" << std::endl;
   op->osd_trace.event("enqueue op");
   op->osd_trace.keyval("priority", priority);
   op->osd_trace.keyval("cost", cost);
