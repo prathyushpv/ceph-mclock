@@ -44,7 +44,7 @@
 #include "perfglue/heap_profiler.h"
 #include "common/blkdev.h"
 #include "common/numa.h"
-
+#include "osd/OpRequest.h"
 #if defined(WITH_LTTNG)
 #define TRACEPOINT_DEFINE
 #define TRACEPOINT_PROBE_DYNAMIC_LINKAGE
@@ -11101,9 +11101,10 @@ void BlueStore::get_db_statistics(Formatter *f)
 
 BlueStore::TransContext *BlueStore::_txc_create(
   Collection *c, OpSequencer *osr,
-  list<Context*> *on_commits)
+  list<Context*> *on_commits, TrackedOpRef op = nullptr)
 {
   TransContext *txc = new TransContext(cct, c, osr, on_commits);
+  txc->op = op;
   txc->t = db->get_transaction();
   osr->queue_new(txc);
   dout(20) << __func__ << " osr " << osr << " = " << txc
@@ -11557,6 +11558,11 @@ void BlueStore::_txc_finish(TransContext *txc)
 	       << dendl;
     }
   }
+  OpRequest* opr = nullptr;
+  if(txc->op)
+    opr = dynamic_cast<OpRequest*>(&*(txc->op));
+  if(opr)
+    opr->pg_trace.event("finished_in_bluestore");
 }
 
 void BlueStore::_txc_release_alloc(TransContext *txc)
@@ -12373,7 +12379,7 @@ int BlueStore::queue_transactions(
 
   // prepare
   TransContext *txc = _txc_create(static_cast<Collection*>(ch.get()), osr,
-				  &on_commit);
+				  &on_commit, op);
 
   for (vector<Transaction>::iterator p = tls.begin(); p != tls.end(); ++p) {
     txc->bytes += (*p).get_num_bytes();

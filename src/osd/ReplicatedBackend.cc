@@ -591,6 +591,7 @@ void ReplicatedBackend::do_repop_reply(OpRequestRef op)
       ceph_assert(ip_op.waiting_for_commit.count(from));
       ip_op.waiting_for_commit.erase(from);
       if (ip_op.op) {
+        ip_op.op->pg_trace.event("received_MOSDRepOpReply");
 	ip_op.op->mark_event("sub_op_commit_rec");
 	ip_op.op->pg_trace.event("sub_op_commit_rec");
       }
@@ -1021,6 +1022,8 @@ void ReplicatedBackend::issue_op(
 	  pinfo);
       if (op->op && op->op->pg_trace)
 	wr->trace.init("replicated op", nullptr, &op->op->pg_trace);
+      if(op->op)
+	op->op->pg_trace.event("sending_MOSDRepOp");
       get_parent()->send_message_osd_cluster(
 	  shard.osd, wr, get_osdmap_epoch());
     }
@@ -1152,6 +1155,7 @@ void ReplicatedBackend::repop_commit(RepModifyRef rm)
   reply->set_last_complete_ondisk(rm->last_complete);
   reply->set_priority(CEPH_MSG_PRIO_HIGH); // this better match ack priority!
   reply->trace = rm->op->pg_trace;
+  rm->op->pg_trace.event("sending_MOSDRepOpReply");
   get_parent()->send_message_osd_cluster(
     rm->ackerosd, reply, get_osdmap_epoch());
 

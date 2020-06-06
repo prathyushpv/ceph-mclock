@@ -4019,6 +4019,7 @@ void PrimaryLogPG::execute_ctx(OpContext *ctx)
 	ctx->reply = nullptr;
 	reply->add_flags(CEPH_OSD_FLAG_ACK | CEPH_OSD_FLAG_ONDISK);
 	dout(10) << " sending reply on " << *m << " " << reply << dendl;
+	ctx->op->pg_trace.event("sending_MOSDOpReply");
 	osd->send_message_osd_client(reply, m->get_connection());
 	ctx->sent_reply = true;
 	ctx->op->mark_commit_sent();

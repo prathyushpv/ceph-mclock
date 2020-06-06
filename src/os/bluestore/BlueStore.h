@@ -1509,6 +1509,7 @@ public:
     } state_t;
 
     state_t state = STATE_PREPARE;
+    TrackedOpRef op;
 
     const char *get_state_name() {
       switch (state) {
@@ -2322,7 +2323,8 @@ private:
   friend void _dump_transaction(CephContext *cct, Transaction *t);
 
   TransContext *_txc_create(Collection *c, OpSequencer *osr,
-			    std::list<Context*> *on_commits);
+			    std::list<Context*> *on_commits,
+			     TrackedOpRef op);
   void _txc_update_store_statfs(TransContext *txc);
   void _txc_add_transaction(TransContext *txc, Transaction *t);
   void _txc_calc_cost(TransContext *txc);
