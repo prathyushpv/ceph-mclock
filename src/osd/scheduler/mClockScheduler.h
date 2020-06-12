@@ -129,4 +129,75 @@ public:
 			  const std::set<std::string> &changed) final;
 };
 
+class ModifiedmClockScheduler : public OpScheduler, md_config_obs_t {
+
+  class ClientRegistry {
+    std::array<
+      crimson::dmclock::ClientInfo,
+      static_cast<size_t>(op_scheduler_class::immediate)
+    > internal_client_infos = {
+      // Placeholder, gets replaced with configured values
+      crimson::dmclock::ClientInfo(1, 1, 1),
+      crimson::dmclock::ClientInfo(1, 1, 1)
+    };
+
+    crimson::dmclock::ClientInfo default_external_client_info = {1, 1, 1};
+    std::map<client_profile_id_t,
+	     crimson::dmclock::ClientInfo> external_client_infos;
+    const crimson::dmclock::ClientInfo *get_external_client(
+      const client_profile_id_t &client) const;
+  public:
+    void update_from_config(const ConfigProxy &conf);
+    const crimson::dmclock::ClientInfo *get_info(
+      const scheduler_id_t &id) const;
+  } client_registry;
+
+  using mclock_queue_t = crimson::dmclock::PullPriorityQueue<
+    scheduler_id_t,
+    OpSchedulerItem,
+    true,
+    true,
+    2>;
+  mclock_queue_t scheduler;
+  std::list<OpSchedulerItem> immediate;
+
+  static scheduler_id_t get_scheduler_id(const OpSchedulerItem &item) {
+    return scheduler_id_t{
+      item.get_scheduler_class(),
+	client_profile_id_t{
+	item.get_owner(),
+	  0
+	  }
+    };
+  }
+
+public:
+  ModifiedmClockScheduler(CephContext *cct);
+
+  // Enqueue op in the back of the regular queue
+  void enqueue(OpSchedulerItem &&item) final;
+
+  // Enqueue the op in the front of the regular queue
+  void enqueue_front(OpSchedulerItem &&item) final;
+
+  // Return an op to be dispatch
+  OpSchedulerItem dequeue() final;
+
+  // Returns if the queue is empty
+  bool empty() const final {
+    return immediate.empty() && scheduler.empty();
+  }
+
+  // Formatted output of the queue
+  void dump(ceph::Formatter &f) const final;
+
+  void print(std::ostream &ostream) const final {
+    ostream << "ModifiedmClockScheduler";
+  }
+
+  const char** get_tracked_conf_keys() const final;
+  void handle_conf_change(const ConfigProxy& conf,
+			  const std::set<std::string> &changed) final;
+};
+
 }

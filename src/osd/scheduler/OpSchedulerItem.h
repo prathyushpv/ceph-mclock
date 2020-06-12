@@ -144,6 +144,12 @@ public:
   uint64_t get_reserved_pushes() const {
     return qitem->get_reserved_pushes();
   }
+  uint64_t get_reqid() const{
+    auto request = maybe_get_op();
+    if(request){
+      return (*request)->get_reqid().tid;
+    }
+  }
   void run(OSD *osd, OSDShard *sdata,PGRef& pg, ThreadPool::TPHandle &handle) {
     qitem->run(osd, sdata, pg, handle);
   }

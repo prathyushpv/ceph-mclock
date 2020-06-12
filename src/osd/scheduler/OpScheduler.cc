@@ -13,7 +13,7 @@
  */
 
 #include <ostream>
-
+#include <iostream>
 #include "osd/scheduler/OpScheduler.h"
 
 #include "common/WeightedPriorityQueue.h"
@@ -42,7 +42,12 @@ OpSchedulerRef make_scheduler(CephContext *cct)
     );
   } else if (*type == "mclock_scheduler") {
     return std::make_unique<mClockScheduler>(cct);
-  } else {
+  } 
+  else if (*type == "modified_mclock_scheduler") {
+    std::cout << "Selected modified mclock scheduler" << endl;
+    return std::make_unique<ModifiedmClockScheduler>(cct);
+  }
+  else {
     ceph_assert("Invalid choice of wq" == 0);
   }
 }
